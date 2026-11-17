@@ -1,0 +1,953 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#4F46E5" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>EduNova: Your Campus Planner</title>
+  <link rel="manifest" href="manifest.json" />
+  <style>
+    :root {
+      --primary: #4F46E5;
+      --primary-light: #EEF2FF;
+      --bg: #F8FAFC;
+      --surface: #FFFFFF;
+      --text: #0F172A;
+      --text-muted: #64748B;
+      --border: #E2E8F0;
+      --danger: #EF4444;
+      --warning: #F59E0B;
+      --success: #10B981;
+      --shadow: 0 2px 8px rgba(15, 23, 42, 0.06);
+    }
+
+    body.dark {
+      --primary: #818CF8;
+      --primary-light: rgba(129, 140, 248, 0.15);
+      --bg: #0F172A;
+      --surface: #1E293B;
+      --text: #F8FAFC;
+      --text-muted: #94A3B8;
+      --border: #334155;
+      --shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      transition: background-color 0.25s, color 0.25s;
+      padding-bottom: 84px;
+      padding-top: env(safe-area-inset-top);
+      min-height: 100vh;
+    }
+
+    /* Header */
+    header {
+      background-color: var(--surface);
+      padding: 14px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 20;
+    }
+
+    .header-title h1 {
+      font-size: 1.2rem;
+      font-weight: 800;
+      color: var(--primary);
+      letter-spacing: -0.3px;
+    }
+
+    .header-title .subtitle {
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      display: block;
+      margin-top: 1px;
+    }
+
+    .header-title p {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    .theme-btn {
+      background: var(--primary-light);
+      color: var(--primary);
+      border: none;
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      font-size: 1.1rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    /* Container */
+    .container {
+      padding: 16px 20px;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    .screen {
+      display: none;
+      animation: fadeIn 0.2s ease-in-out;
+    }
+
+    .screen.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Cards */
+    .card {
+      background: var(--surface);
+      border-radius: 16px;
+      padding: 16px;
+      margin-bottom: 14px;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+    }
+
+    .hero-card {
+      background: linear-gradient(135deg, #4F46E5, #6366F1);
+      color: #FFFFFF;
+      border: none;
+    }
+
+    .hero-card .badge {
+      background: rgba(255, 255, 255, 0.2);
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      display: inline-block;
+      margin-bottom: 10px;
+    }
+
+    .hero-card h2 {
+      font-size: 1.2rem;
+      margin-bottom: 4px;
+    }
+
+    .hero-card p {
+      font-size: 0.85rem;
+      opacity: 0.92;
+    }
+
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .stat-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 12px 8px;
+      text-align: center;
+      box-shadow: var(--shadow);
+    }
+
+    .stat-box .num {
+      font-size: 1.2rem;
+      font-weight: 800;
+      color: var(--primary);
+    }
+
+    .stat-box .lbl {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: 18px 0 10px;
+    }
+
+    .section-header h3 {
+      font-size: 1rem;
+      font-weight: 700;
+    }
+
+    /* Day Tabs */
+    .day-tabs {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 8px;
+      margin-bottom: 12px;
+      scrollbar-width: none;
+    }
+    .day-tabs::-webkit-scrollbar { display: none; }
+
+    .day-tab {
+      padding: 8px 14px;
+      border-radius: 12px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .day-tab.active {
+      background: var(--primary);
+      color: #FFFFFF;
+      border-color: var(--primary);
+    }
+
+    /* Class Item */
+    .class-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-left: 5px solid var(--primary);
+    }
+
+    .class-info h4 {
+      font-size: 0.98rem;
+      margin-bottom: 4px;
+    }
+
+    .class-meta {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .lecturer-note {
+      font-size: 0.78rem;
+      color: var(--primary);
+      margin-top: 4px;
+      font-weight: 500;
+    }
+
+    /* Task Item */
+    .task-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .task-check {
+      width: 22px;
+      height: 22px;
+      border-radius: 6px;
+      border: 2px solid var(--primary);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      color: #fff;
+      font-size: 0.8rem;
+    }
+
+    .task-check.done {
+      background: var(--success);
+      border-color: var(--success);
+    }
+
+    .task-content {
+      flex: 1;
+    }
+
+    .task-content h4 {
+      font-size: 0.95rem;
+      margin-bottom: 3px;
+    }
+
+    .task-content.done h4 {
+      text-decoration: line-through;
+      color: var(--text-muted);
+    }
+
+    .priority-tag {
+      font-size: 0.7rem;
+      padding: 2px 8px;
+      border-radius: 8px;
+      font-weight: 600;
+    }
+    .p-Tinggi { background: rgba(239, 68, 68, 0.15); color: var(--danger); }
+    .p-Sederhana { background: rgba(245, 158, 11, 0.15); color: var(--warning); }
+    .p-Rendah { background: rgba(16, 185, 129, 0.15); color: var(--success); }
+
+    .del-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 1rem;
+      cursor: pointer;
+      padding: 6px;
+    }
+
+    /* Floating Action Button */
+    .fab {
+      position: fixed;
+      bottom: 84px;
+      right: 20px;
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: var(--primary);
+      color: #FFFFFF;
+      border: none;
+      font-size: 1.7rem;
+      box-shadow: 0 4px 14px rgba(79, 70, 229, 0.4);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 30;
+    }
+
+    /* Bottom Navigation */
+    nav.bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-around;
+      padding: 8px 0 calc(8px + env(safe-area-inset-bottom));
+      z-index: 25;
+    }
+
+    .nav-item {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      cursor: pointer;
+      flex: 1;
+    }
+
+    .nav-item.active {
+      color: var(--primary);
+    }
+
+    .nav-icon {
+      font-size: 1.25rem;
+    }
+
+    /* Modal */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.6);
+      display: none;
+      align-items: flex-end;
+      justify-content: center;
+      z-index: 50;
+    }
+
+    .modal-backdrop.open {
+      display: flex;
+    }
+
+    .modal-sheet {
+      background: var(--surface);
+      width: 100%;
+      max-width: 600px;
+      border-radius: 24px 24px 0 0;
+      padding: 20px;
+      animation: slideUp 0.25s ease-out;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    @keyframes slideUp {
+      from { transform: translateY(100%); }
+      to { transform: translateY(0); }
+    }
+
+    .modal-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .modal-tab {
+      flex: 1;
+      padding: 10px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--text);
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .modal-tab.active {
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary);
+    }
+
+    .form-group {
+      margin-bottom: 12px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+      font-weight: 600;
+    }
+
+    .form-group input, .form-group select {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--text);
+      font-size: 0.92rem;
+    }
+
+    .btn-primary {
+      width: 100%;
+      padding: 12px;
+      border-radius: 12px;
+      border: none;
+      background: var(--primary);
+      color: #fff;
+      font-weight: 700;
+      font-size: 0.95rem;
+      cursor: pointer;
+      margin-top: 8px;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 30px 16px;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="header-title">
+      <h1>EduNova</h1>
+      <span class="subtitle">Your Campus Planner</span>
+      <p id="currentDateText">Selamat Belajar!</p>
+    </div>
+    <button class="theme-btn" id="themeToggle" title="Tukar Tema">🌙</button>
+  </header>
+
+  <div class="container">
+    <!-- SKRIN 1: UTAMA (DASHBOARD) -->
+    <section id="screen-home" class="screen active">
+      <div class="card hero-card">
+        <span class="badge">📚 EduNova • Status Hari Ini</span>
+        <h2 id="heroSummary">Memuatkan jadual...</h2>
+        <p id="heroSubtext">Semak kelas dan tugasan terdekat anda.</p>
+      </div>
+
+      <div class="stats-row">
+        <div class="stat-box">
+          <div class="num" id="statTotalClasses">0</div>
+          <div class="lbl">Jumlah Kelas</div>
+        </div>
+        <div class="stat-box">
+          <div class="num" id="statPendingTasks">0</div>
+          <div class="lbl">Belum Siap</div>
+        </div>
+        <div class="stat-box">
+          <div class="num" id="statDoneTasks">0</div>
+          <div class="lbl">Selesai</div>
+        </div>
+      </div>
+
+      <div class="section-header">
+        <h3>🕒 Kelas Hari Ini</h3>
+      </div>
+      <div id="homeTodayClasses"></div>
+
+      <div class="section-header">
+        <h3>🔥 Tugasan Terdekat</h3>
+      </div>
+      <div id="homeUrgentTasks"></div>
+    </section>
+
+    <!-- SKRIN 2: JADUAL WAKTU -->
+    <section id="screen-schedule" class="screen">
+      <div class="day-tabs" id="dayTabs">
+        <button class="day-tab active" data-day="Isnin">Isnin</button>
+        <button class="day-tab" data-day="Selasa">Selasa</button>
+        <button class="day-tab" data-day="Rabu">Rabu</button>
+        <button class="day-tab" data-day="Khamis">Khamis</button>
+        <button class="day-tab" data-day="Jumaat">Jumaat</button>
+        <button class="day-tab" data-day="Sabtu">Sabtu</button>
+      </div>
+      <div id="scheduleList"></div>
+    </section>
+
+    <!-- SKRIN 3: TUGASAN -->
+    <section id="screen-tasks" class="screen">
+      <div class="day-tabs" id="taskFilterTabs">
+        <button class="day-tab active" data-filter="all">Semua</button>
+        <button class="day-tab" data-filter="pending">Belum Siap</button>
+        <button class="day-tab" data-filter="done">Selesai</button>
+      </div>
+      <div id="taskList"></div>
+    </section>
+
+    <!-- SKRIN 4: PROFIL & TETAPAN -->
+    <section id="screen-profile" class="screen">
+      <div class="card">
+        <h3 style="margin-bottom: 12px;">🎓 Maklumat Pelajar</h3>
+        <div class="form-group">
+          <label>Nama Pelajar</label>
+          <input type="text" id="studentNameInput" placeholder="Contoh: Ahmad Danial" />
+        </div>
+        <div class="form-group">
+          <label>Kursus / Fakulti</label>
+          <input type="text" id="studentCourseInput" placeholder="Contoh: Diploma Sains Komputer" />
+        </div>
+        <div class="form-group">
+          <label>Semester Semasa</label>
+          <input type="text" id="studentSemInput" placeholder="Contoh: Semester 3 (2026/2027)" />
+        </div>
+        <button class="btn-primary" id="saveProfileBtn">Simpan Profil</button>
+      </div>
+
+      <div class="card">
+        <h3 style="margin-bottom: 8px;">📱 Tentang EduNova</h3>
+        <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 12px;">
+          <strong>EduNova: Your Campus Planner (Full Version v1.0)</strong><br/>
+          Semua jadual dan tugasan disimpan terus dalam peranti anda secara luar talian (offline).
+        </p>
+        <button class="btn-primary" style="background: var(--danger);" id="resetDataBtn">Set Semula Data Contoh</button>
+      </div>
+    </section>
+  </div>
+
+  <button class="fab" id="openModalBtn">+</button>
+
+  <nav class="bottom-nav">
+    <button class="nav-item active" data-target="screen-home">
+      <span class="nav-icon">🏠</span>
+      <span>Utama</span>
+    </button>
+    <button class="nav-item" data-target="screen-schedule">
+      <span class="nav-icon">📅</span>
+      <span>Jadual</span>
+    </button>
+    <button class="nav-item" data-target="screen-tasks">
+      <span class="nav-icon">📝</span>
+      <span>Tugasan</span>
+    </button>
+    <button class="nav-item" data-target="screen-profile">
+      <span class="nav-icon">👤</span>
+      <span>Profil</span>
+    </button>
+  </nav>
+
+  <!-- MODAL TAMBAH ITEM -->
+  <div class="modal-backdrop" id="addModal">
+    <div class="modal-sheet">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+        <h3>Tambah Baru ke EduNova</h3>
+        <button id="closeModalBtn" style="background:none; border:none; font-size:1.3rem; color:var(--text-muted); cursor:pointer;">✕</button>
+      </div>
+
+      <div class="modal-tabs">
+        <button class="modal-tab active" id="tabAddClass">Jadual Kelas</button>
+        <button class="modal-tab" id="tabAddTask">Tugasan / Exam</button>
+      </div>
+
+      <!-- Borang Kelas -->
+      <form id="formClass">
+        <div class="form-group">
+          <label>Nama Subjek</label>
+          <input type="text" id="clsSubject" required placeholder="cth: Matematik Kejuruteraan" />
+        </div>
+        <div style="display:flex; gap:10px;">
+          <div class="form-group" style="flex:1;">
+            <label>Kod Subjek</label>
+            <input type="text" id="clsCode" required placeholder="cth: MAT201" />
+          </div>
+          <div class="form-group" style="flex:1;">
+            <label>Hari</label>
+            <select id="clsDay">
+              <option value="Isnin">Isnin</option>
+              <option value="Selasa">Selasa</option>
+              <option value="Rabu">Rabu</option>
+              <option value="Khamis">Khamis</option>
+              <option value="Jumaat">Jumaat</option>
+              <option value="Sabtu">Sabtu</option>
+            </select>
+          </div>
+        </div>
+        <div style="display:flex; gap:10px;">
+          <div class="form-group" style="flex:1;">
+            <label>Masa Mula</label>
+            <input type="time" id="clsStart" value="08:00" required />
+          </div>
+          <div class="form-group" style="flex:1;">
+            <label>Masa Tamat</label>
+            <input type="time" id="clsEnd" value="10:00" required />
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Lokasi / Bilik Kuliah</label>
+          <input type="text" id="clsLocation" required placeholder="cth: Dewan Kuliah 2" />
+        </div>
+        <div class="form-group">
+          <label>Nama Pensyarah (Pilihan)</label>
+          <input type="text" id="clsLecturer" placeholder="cth: Dr. Siti Aminah" />
+        </div>
+        <button type="submit" class="btn-primary">Simpan Jadual Kelas</button>
+      </form>
+
+      <!-- Borang Tugasan -->
+      <form id="formTask" style="display:none;">
+        <div class="form-group">
+          <label>Tajuk Tugasan / Peperiksaan</label>
+          <input type="text" id="tskTitle" required placeholder="cth: Laporan Amali Makmal 2" />
+        </div>
+        <div style="display:flex; gap:10px;">
+          <div class="form-group" style="flex:1;">
+            <label>Kod Subjek</label>
+            <input type="text" id="tskCode" required placeholder="cth: CSC102" />
+          </div>
+          <div class="form-group" style="flex:1;">
+            <label>Keutamaan</label>
+            <select id="tskPriority">
+              <option value="Tinggi">Tinggi</option>
+              <option value="Sederhana" selected>Sederhana</option>
+              <option value="Rendah">Rendah</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Tarikh Akhir (Deadline)</label>
+          <input type="date" id="tskDue" required />
+        </div>
+        <button type="submit" class="btn-primary">Simpan Tugasan</button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const defaultClasses = [
+      { id: 1, subjectName: "Pengaturcaraan Mudah Alih", subjectCode: "CSC304", dayOfWeek: "Isnin", startTime: "08:00", endTime: "10:00", location: "Makmal Komputer 2", lecturer: "Dr. Haziq", color: "#4F46E5" },
+      { id: 2, subjectName: "Matematik Diskrit", subjectCode: "MAT210", dayOfWeek: "Isnin", startTime: "11:00", endTime: "13:00", location: "Dewan Kuliah A", lecturer: "Prof. Madya Noraini", color: "#10B981" },
+      { id: 3, subjectName: "Sistem Pangkalan Data", subjectCode: "CSC205", dayOfWeek: "Selasa", startTime: "09:00", endTime: "11:00", location: "Bilik Kuliah 4", lecturer: "En. Faizal", color: "#F59E0B" },
+      { id: 4, subjectName: "Komunikasi Profesional", subjectCode: "ENG102", dayOfWeek: "Rabu", startTime: "14:00", endTime: "16:00", location: "Blok C, Bilik 12", lecturer: "Pn. Sarah", color: "#EC4899" }
+    ];
+
+    const defaultTasks = [
+      { id: 101, title: "Prototaip Aplikasi Android", subjectCode: "CSC304", dueDate: new Date(Date.now() + 86400000 * 2).toISOString().split('T')[0], priority: "Tinggi", done: false },
+      { id: 102, title: "Latihan Tutorial Bab 4", subjectCode: "MAT210", dueDate: new Date(Date.now() + 86400000 * 4).toISOString().split('T')[0], priority: "Sederhana", done: false },
+      { id: 103, title: "Reka Bentuk ERD Sistem Perpustakaan", subjectCode: "CSC205", dueDate: new Date(Date.now() - 86400000).toISOString().split('T')[0], priority: "Rendah", done: true }
+    ];
+
+    let classes = JSON.parse(localStorage.getItem('edunova_classes')) || defaultClasses;
+    let tasks = JSON.parse(localStorage.getItem('edunova_tasks')) || defaultTasks;
+    let profile = JSON.parse(localStorage.getItem('edunova_profile')) || { name: "Mahasiswa", course: "Pengajian Diploma / Ijazah", sem: "Semester Semasa" };
+    let selectedDay = "Isnin";
+    let taskFilter = "all";
+
+    const colors = ["#4F46E5", "#10B981", "#F59E0B", "#EC4899", "#06B6D4", "#8B5CF6"];
+
+    function saveData() {
+      localStorage.setItem('edunova_classes', JSON.stringify(classes));
+      localStorage.setItem('edunova_tasks', JSON.stringify(tasks));
+      localStorage.setItem('edunova_profile', JSON.stringify(profile));
+      renderAll();
+    }
+
+    // Theme handling
+    const themeToggle = document.getElementById('themeToggle');
+    if (localStorage.getItem('edunova_theme') === 'dark') {
+      document.body.classList.add('dark');
+      themeToggle.textContent = '☀️';
+    }
+    themeToggle.addEventListener('click', () => {
+      document.body.classList.toggle('dark');
+      const isDark = document.body.classList.contains('dark');
+      themeToggle.textContent = isDark ? '☀️' : '🌙';
+      localStorage.setItem('edunova_theme', isDark ? 'dark' : 'light');
+    });
+
+    // Navigation
+    document.querySelectorAll('.nav-item').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById(btn.dataset.target).classList.add('active');
+      });
+    });
+
+    // Day Tabs
+    document.querySelectorAll('#dayTabs .day-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('#dayTabs .day-tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        selectedDay = tab.dataset.day;
+        renderSchedule();
+      });
+    });
+
+    // Task Filter Tabs
+    document.querySelectorAll('#taskFilterTabs .day-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('#taskFilterTabs .day-tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        taskFilter = tab.dataset.filter;
+        renderTasks();
+      });
+    });
+
+    // Render Functions
+    function renderHome() {
+      const daysMap = ["Ahad", "Isnin", "Selasa", "Rabu", "Khamis", "Jumaat", "Sabtu"];
+      const todayName = daysMap[new Date().getDay()];
+      const displayDay = todayName === "Ahad" ? "Isnin" : todayName;
+
+      document.getElementById('currentDateText').textContent = `Hai, ${profile.name} • ${todayName}`;
+
+      const todayClasses = classes.filter(c => c.dayOfWeek === displayDay).sort((a,b) => a.startTime.localeCompare(b.startTime));
+      const pendingTasks = tasks.filter(t => !t.done).sort((a,b) => a.dueDate.localeCompare(b.dueDate));
+      const doneTasks = tasks.filter(t => t.done);
+
+      document.getElementById('statTotalClasses').textContent = classes.length;
+      document.getElementById('statPendingTasks').textContent = pendingTasks.length;
+      document.getElementById('statDoneTasks').textContent = doneTasks.length;
+
+      document.getElementById('heroSummary').textContent = `${todayClasses.length} Kelas & ${pendingTasks.length} Tugasan Aktif`;
+      document.getElementById('heroSubtext').textContent = todayClasses.length > 0
+        ? `Kelas pertama (${displayDay}): ${todayClasses[0].subjectName} jam ${todayClasses[0].startTime}`
+        : `Tiada kelas dijadualkan pada hari ${displayDay}.`;
+
+      const homeClsContainer = document.getElementById('homeTodayClasses');
+      homeClsContainer.innerHTML = todayClasses.length ? todayClasses.map(c => `
+        <div class="card class-item" style="border-left-color: ${c.color}">
+          <div class="class-info">
+            <h4>${c.subjectName} (${c.subjectCode})</h4>
+            <div class="class-meta">
+              <span>⏰ ${c.startTime} - ${c.endTime}</span>
+              <span>📍 ${c.location}</span>
+            </div>
+            ${c.lecturer ? `<div class="lecturer-note">👨‍🏫 ${c.lecturer}</div>` : ''}
+          </div>
+        </div>
+      `).join('') : `<div class="card empty-state">Tiada kelas untuk hari ${displayDay}.</div>`;
+
+      const homeTskContainer = document.getElementById('homeUrgentTasks');
+      homeTskContainer.innerHTML = pendingTasks.slice(0, 3).length ? pendingTasks.slice(0, 3).map(t => `
+        <div class="card task-item">
+          <div class="task-check" onclick="toggleTask(${t.id})"></div>
+          <div class="task-content">
+            <h4>${t.title}</h4>
+            <div class="class-meta">
+              <span>📘 ${t.subjectCode}</span>
+              <span>📅 ${t.dueDate}</span>
+              <span class="priority-tag p-${t.priority}">${t.priority}</span>
+            </div>
+          </div>
+        </div>
+      `).join('') : `<div class="card empty-state">Semua tugasan telah disiapkan! 🎉</div>`;
+    }
+
+    function renderSchedule() {
+      const filtered = classes.filter(c => c.dayOfWeek === selectedDay).sort((a,b) => a.startTime.localeCompare(b.startTime));
+      const container = document.getElementById('scheduleList');
+      container.innerHTML = filtered.length ? filtered.map(c => `
+        <div class="card class-item" style="border-left-color: ${c.color}">
+          <div class="class-info">
+            <h4>${c.subjectName} (${c.subjectCode})</h4>
+            <div class="class-meta">
+              <span>⏰ ${c.startTime} - ${c.endTime}</span>
+              <span>📍 ${c.location}</span>
+            </div>
+            ${c.lecturer ? `<div class="lecturer-note">👨‍🏫 ${c.lecturer}</div>` : ''}
+          </div>
+          <button class="del-btn" onclick="deleteClass(${c.id})" title="Padam">🗑️</button>
+        </div>
+      `).join('') : `<div class="card empty-state">Tiada kelas pada hari ${selectedDay}. Tekan + untuk tambah.</div>`;
+    }
+
+    function renderTasks() {
+      let filtered = tasks;
+      if (taskFilter === 'pending') filtered = tasks.filter(t => !t.done);
+      if (taskFilter === 'done') filtered = tasks.filter(t => t.done);
+      filtered.sort((a,b) => a.dueDate.localeCompare(b.dueDate));
+
+      const container = document.getElementById('taskList');
+      container.innerHTML = filtered.length ? filtered.map(t => `
+        <div class="card task-item">
+          <div class="task-check ${t.done ? 'done' : ''}" onclick="toggleTask(${t.id})">${t.done ? '✓' : ''}</div>
+          <div class="task-content ${t.done ? 'done' : ''}">
+            <h4>${t.title}</h4>
+            <div class="class-meta">
+              <span>📘 ${t.subjectCode}</span>
+              <span>📅 ${t.dueDate}</span>
+              <span class="priority-tag p-${t.priority}">${t.priority}</span>
+            </div>
+          </div>
+          <button class="del-btn" onclick="deleteTask(${t.id})" title="Padam">🗑️</button>
+        </div>
+      `).join('') : `<div class="card empty-state">Tiada tugasan dalam senarai ini.</div>`;
+    }
+
+    function renderProfile() {
+      document.getElementById('studentNameInput').value = profile.name || "";
+      document.getElementById('studentCourseInput').value = profile.course || "";
+      document.getElementById('studentSemInput').value = profile.sem || "";
+    }
+
+    function renderAll() {
+      renderHome();
+      renderSchedule();
+      renderTasks();
+      renderProfile();
+    }
+
+    // Actions
+    window.toggleTask = function(id) {
+      tasks = tasks.map(t => t.id === id ? { ...t, done: !t.done } : t);
+      saveData();
+    };
+
+    window.deleteClass = function(id) {
+      classes = classes.filter(c => c.id !== id);
+      saveData();
+    };
+
+    window.deleteTask = function(id) {
+      tasks = tasks.filter(t => t.id !== id);
+      saveData();
+    };
+
+    // Modal Controls
+    const addModal = document.getElementById('addModal');
+    document.getElementById('openModalBtn').addEventListener('click', () => {
+      document.getElementById('tskDue').value = new Date().toISOString().split('T')[0];
+      addModal.classList.add('open');
+    });
+    document.getElementById('closeModalBtn').addEventListener('click', () => addModal.classList.remove('open'));
+
+    const tabAddClass = document.getElementById('tabAddClass');
+    const tabAddTask = document.getElementById('tabAddTask');
+    const formClass = document.getElementById('formClass');
+    const formTask = document.getElementById('formTask');
+
+    tabAddClass.addEventListener('click', () => {
+      tabAddClass.classList.add('active');
+      tabAddTask.classList.remove('active');
+      formClass.style.display = 'block';
+      formTask.style.display = 'none';
+    });
+
+    tabAddTask.addEventListener('click', () => {
+      tabAddTask.classList.add('active');
+      tabAddClass.classList.remove('active');
+      formTask.style.display = 'block';
+      formClass.style.display = 'none';
+    });
+
+    formClass.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const newCls = {
+        id: Date.now(),
+        subjectName: document.getElementById('clsSubject').value.trim(),
+        subjectCode: document.getElementById('clsCode').value.trim().toUpperCase(),
+        dayOfWeek: document.getElementById('clsDay').value,
+        startTime: document.getElementById('clsStart').value,
+        endTime: document.getElementById('clsEnd').value,
+        location: document.getElementById('clsLocation').value.trim(),
+        lecturer: document.getElementById('clsLecturer').value.trim(),
+        color: colors[classes.length % colors.length]
+      };
+      classes.push(newCls);
+      selectedDay = newCls.dayOfWeek;
+      document.querySelectorAll('#dayTabs .day-tab').forEach(t => {
+        t.classList.toggle('active', t.dataset.day === selectedDay);
+      });
+      formClass.reset();
+      addModal.classList.remove('open');
+      saveData();
+    });
+
+    formTask.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const newTask = {
+        id: Date.now(),
+        title: document.getElementById('tskTitle').value.trim(),
+        subjectCode: document.getElementById('tskCode').value.trim().toUpperCase(),
+        dueDate: document.getElementById('tskDue').value,
+        priority: document.getElementById('tskPriority').value,
+        done: false
+      };
+      tasks.push(newTask);
+      formTask.reset();
+      addModal.classList.remove('open');
+      saveData();
+    });
+
+    document.getElementById('saveProfileBtn').addEventListener('click', () => {
+      profile.name = document.getElementById('studentNameInput').value.trim() || "Mahasiswa";
+      profile.course = document.getElementById('studentCourseInput').value.trim() || "Pelajar Kolej";
+      profile.sem = document.getElementById('studentSemInput').value.trim() || "Semester Semasa";
+      saveData();
+      alert("Profil EduNova berjaya disimpan!");
+    });
+
+    document.getElementById('resetDataBtn').addEventListener('click', () => {
+      if (confirm("Set semula semua jadual dan tugasan kepada data contoh asal?")) {
+        classes = [...defaultClasses];
+        tasks = [...defaultTasks];
+        saveData();
+      }
+    });
+
+    renderAll();
+  </script>
+</body>
+</html>
